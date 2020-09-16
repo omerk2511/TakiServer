@@ -17,12 +17,20 @@ The protocol defines a standard flow for the communication, which is based on th
 5. Three out of four players finally get rid of all of their cards, which then causes the game to end.
 6. The flow gets back to step number 2. All the JWTs are not relevant anymore.
 
+## Side Notes
+
+1. If a player does not make a move after 30 seconds from the server's request, the server automatically relates to it as a *take_cards* request.
+
 ## Messages
 
 1. [Creating a Game](#creating-a-game)
 2. [Joining a Game](#joining-a-game)
 3. [Leaving a Game](#leaving-a-game)
 4. [Starting a Game](#starting-a-game)
+5. [Update Turn](#update-turn)
+6. [Doing a Move](#doing-a-move)
+7. [Ending a Game](#ending-a-game)
+8. [General Bad Request](#general-bad-request)
 
 ### Creating a Game
 
@@ -222,8 +230,139 @@ This message is not a real broadcast message. It is sent to each user separately
 {
     "code": "game_starting",
     "args": {
-        "players": [],
+        "players":  [],
+        "cards":    []
+    }
+}
+```
+
+### Update Turn
+
+**Server Broadcast Message:**
+
+```json
+{
+    "code": "update_turn",
+    "args": {
+        "current_player": ""
+    }
+}
+```
+
+### Doing a Move
+
+**Card Placement Request:**
+
+```json
+{
+    "code": "place_cards",
+    "jwt":  "",
+    "args": {
         "cards": []
+    }
+}
+```
+
+**Success Response:**
+
+```json
+{
+    "status": "success",
+    "args": {}
+}
+```
+
+**Bad Request Response:**
+
+```json
+{
+    "status": "bad_request",
+    "args": {
+        "message": "Invalid move done."
+    }
+}
+```
+
+**Server Broadcast Message:**
+
+```json
+{
+    "code": "move_done",
+    "args": {
+        "type":         "cards_placed",
+        "cards":        [],
+        "player_name":  ""
+    }
+}
+```
+
+**Card Taking Request:**
+
+```json
+{
+    "code": "take_cards",
+    "jwt":  "",
+    "args": {}
+}
+```
+
+**Success Response:**
+
+```json
+{
+    "status": "success",
+    "args": {
+        "cards": []
+    }
+}
+```
+
+**Server Broadcast Message:**
+
+```json
+{
+    "code": "move_done",
+    "args": {
+        "type":         "cards_taken",
+        "amount":       0,
+        "player_name":  ""
+    }
+}
+```
+
+### Ending a Game
+
+**Server Broadcast Message:**
+
+```json
+{
+    "code": "player_won",
+    "args": {
+        "player_name": ""
+    }
+}
+```
+
+**Server Broadcast Message:**
+
+```json
+{
+    "code": "game_ended",
+    "args": {
+        "scoreboard": []
+    }
+}
+```
+
+### General Bad Request
+
+**Bad Request Response:**
+
+```json
+{
+    "status": "bad_request",
+    "args": {
+        "message": "Bad request"
     }
 }
 ```
