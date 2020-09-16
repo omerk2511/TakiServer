@@ -26,7 +26,7 @@ The protocol defines a standard flow for the communication, which is based on th
 
 ### Creating a Game
 
-Request:
+**Request:**
 
 ```json
 {
@@ -39,7 +39,7 @@ Request:
 }
 ```
 
-Success Response:
+**Success Response:**
 
 ```json
 {
@@ -53,7 +53,7 @@ Success Response:
 
 ### Joining a Game
 
-Request:
+**Request:**
 
 ```json
 {
@@ -66,7 +66,7 @@ Request:
 }
 ```
 
-Success Response:
+**Success Response:**
 
 ```json
 {
@@ -77,7 +77,7 @@ Success Response:
 }
 ```
 
-Bad Request Response:
+**Bad Request Response:**
 
 ```json
 {
@@ -88,7 +88,7 @@ Bad Request Response:
 }
 ```
 
-Conflict Response:
+**Conflict Response:**
 
 ```json
 {
@@ -99,7 +99,7 @@ Conflict Response:
 }
 ```
 
-Not Found Response:
+**Not Found Response:**
 
 ```json
 {
@@ -110,7 +110,7 @@ Not Found Response:
 }
 ```
 
-Denied Responses:
+**Denied Responses:**
 
 ```json
 {
@@ -130,7 +130,7 @@ Denied Responses:
 }
 ```
 
-Server Broadcast Message:
+**Server Broadcast Message:**
 
 ```json
 {
@@ -143,7 +143,7 @@ Server Broadcast Message:
 
 ### Leaving a Game
 
-Request:
+**Request:**
 
 ```json
 {
@@ -153,7 +153,7 @@ Request:
 }
 ```
 
-Success Response:
+**Success Response:**
 
 ```json
 {
@@ -162,7 +162,7 @@ Success Response:
 }
 ```
 
-Server Broadcast Message:
+**Server Broadcast Message:**
 
 ```json
 {
@@ -175,7 +175,7 @@ Server Broadcast Message:
 
 ### Starting a Game
 
-Request:
+**Request:**
 
 ```json
 {
@@ -185,7 +185,7 @@ Request:
 }
 ```
 
-Success Response:
+**Success Response:**
 
 ```json
 {
@@ -194,7 +194,7 @@ Success Response:
 }
 ```
 
-Denied Responses:
+**Denied Responses:**
 
 ```json
 {
@@ -214,7 +214,7 @@ Denied Responses:
 }
 ```
 
-Server Broadcast Message:
+**Server Broadcast Message:**
 
 This message is not a real broadcast message. It is sent to each user separately, and contains player-specific data, like his cards. Furthermore, the players argument contains the player names, in a relative order to the player the message is sent to, hence, making the client-side rendering easier.
 
