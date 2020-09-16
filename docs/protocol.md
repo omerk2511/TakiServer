@@ -21,6 +21,42 @@ The protocol defines a standard flow for the communication, which is based on th
 
 1. If a player does not make a move after 30 seconds from the server's request, the server automatically relates to it as a *take_cards* request.
 
+## Serialized Card Format
+
+```json
+{
+    "type":     "",
+    "color":    "",
+    "value":    ""
+}
+```
+
+The optional types are:
+- number_card
+- plus
+- plus_2
+- stop
+- change_direction
+- change_color
+- taki
+- super_taki
+
+The optional colors are:
+- red
+- blue
+- green
+- yellow
+
+The optional values are:
+- 1
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+
 ## Messages
 
 1. [Creating a Game](#creating-a-game)
