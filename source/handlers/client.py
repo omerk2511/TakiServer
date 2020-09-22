@@ -56,6 +56,13 @@ class Client(Thread):
             buffer = self._socket.recv(BUFFER_SIZE)
             if not buffer: raise socket.error()
 
+            if len(buffer) == BUFFER_SIZE:
+                while True:
+                    try:
+                        buffer += self._socket.recv(BUFFER_SIZE)
+                    except:
+                        break
+
             request = json.loads(buffer)
             validate_request(request)
 
