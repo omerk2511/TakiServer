@@ -4,7 +4,7 @@ from threading import Thread, Lock
 
 from ..requests.utils import validate_request
 
-BUFFER_SIZE = 4096
+BUFFER_SIZE = 1024
 CLIENT_TIMEOUT = 0.5
 
 # move to responses/
