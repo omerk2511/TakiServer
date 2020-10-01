@@ -2,11 +2,14 @@ import socket
 import json
 from threading import Thread, Lock
 
+
+from ..common import Message, Request, Response
 from ..requests.utils import validate_request
+from ..controllers import *
 
 
 BUFFER_SIZE = 1024
-CLIENT_TIMEOUT = 0.5
+CLIENT_TIMEOUT = 0.5 
 
 # move to responses/
 BAD_REQUEST = {
@@ -16,27 +19,7 @@ BAD_REQUEST = {
     }
 }
 
-CREATE_GAME = {
-    "status": "success",
-    "args": {
-        "game_id":  "",
-        "jwt":      ""
-    }
-}
 
-
-class Response(object): 
-    def __init__(self, status, **kwargs): #each response has status and args
-        self.status = status
-        self.args = kwargs
-
-    def serialize(self):
-        return json.dumps(
-            {
-                "status": self.status,
-                "args": self.args
-            }
-        )
 
 
 class Client(Thread):
@@ -51,18 +34,15 @@ class Client(Thread):
         self._port = port
         self._running = True
         self._socket_lock = Lock()
-
-        self.request_handler = {
-            "create_game" : self.create_game
-        }
-
         print '[*] %s:%d has connected to the server' % (ip, port)
 
     def run(self):
         while self._running:
             try:
                 request = self._recieve_request()
+                request = Request.deserialize(request)
                 self.handle_request(request)
+
             except ValueError:
                 self._send_bad_request()
             except socket.timeout:
@@ -70,23 +50,21 @@ class Client(Thread):
             except socket.error:
                 return self.close()
 
+
     def handle_request(self, request):
-        code = request['code']
-        args = request['args']
-        response = self.request_handler[code](**args)
-        self._socket.send(response)
-
-
-    def create_game(self, **kwargs):
-        lobby_name = kwargs.get('lobby_name')
-        player_name  =kwargs.get('player_name')
-        password = kwargs.get('password').strip()
-        if not password.strip(): password = None # if password field is empty
-        print '[*] %s created lobby %s' % (player_name,lobby_name)
-        game_id = '1' # random 
-        token = 'abcd' # jwt
-        response = Response(status = 'success', game_id = game_id, jwt = token)
-        return response.serialize()
+        try:
+            code = request.code
+            args = request.args
+            controller_function = get_controller_func(code)
+            
+            if controller_function:
+                response = get_controller_func(code)(args)
+                self._send_message(response.serialize())
+            else:
+                self._send_bad_request()
+        except Exception as e:
+            print ('[EXCEPTION]',e)
+            self._send_bad_request()
 
 
     def close(self):
@@ -97,6 +75,7 @@ class Client(Thread):
             self._socket.close()
 
         print '[*] %s:%d has disconnected from the server' % (self._ip, self._port)
+
 
     def _recieve_request(self):
         with self._socket_lock:
@@ -114,6 +93,10 @@ class Client(Thread):
             validate_request(request)
 
             return request
+
+
+    def _send_message(self,message):
+        self._socket.send(message)
 
     def _send_bad_request(self):
         with self._socket_lock:
