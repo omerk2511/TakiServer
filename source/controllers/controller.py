@@ -8,4 +8,7 @@ def controller(code):
     return register_controller
 
 def get_controller_func(controller):
-    return CONTROLLERS[controller] if controller in CONTROLLERS else None
+    if controller in CONTROLLERS:
+        return CONTROLLERS[controller]
+
+    raise ValueError('invalid request')

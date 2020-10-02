@@ -1,21 +1,12 @@
 from controller import controller
-from ..common import Request, Response
-
-# move to responses/
-CREATE_GAME = {
-    "status": "success",
-    "args": {
-        "game_id":  "",
-        "jwt":      ""
-    }
-}
+from ..common import Request, Response, Codes
 
 
-@controller('create_game')
+@controller(Codes.CREATE_GAME)
 def create_game(args):
-    status = 'success'
+    status = Codes.SUCCESS
     lobby_name = args['lobby_name']
     host = args['player_name']
     password = args['password']
-    print ("[+] %s created lobby '%s'") % (host,lobby_name)
-    return Response(status,{'game_id': 'RND', 'jwt': 'RND'})
+    print ('[+] %s created lobby %s successfully') % (host, lobby_name)
+    return Response(status, game_id = 'RND', jwt = 'RND')

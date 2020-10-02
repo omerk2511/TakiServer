@@ -1,29 +1,27 @@
 import json
 
 class Request(object):
-    def __init__(self, code, args): # each request has code and args
+    def __init__(self, code, **kwargs): # each request has code and args
         self.code = code
-        self.args = args
+        self.args = kwargs
 
     @classmethod
-    def deserialize(cls, data):
-        if 'code' not in data or 'args' not in data:
+    def deserialize(cls, request):
+        if 'code' not in request or 'args' not in request:
             raise Exception('Invalid message')
 
-        return cls(data['code'], data['args'])
+        return cls(request['code'], **request['args'])
  
 
 class Response(object):
-    def __init__(self, status, args): # each response has status and args. 
+    def __init__(self, status, **kwargs): # each response has status and args. 
         self.status = status
-        self.args = args
+        self.args = kwargs
 
     def serialize(self):
         return json.dumps(
             {
-                "status": self.status,
-                "args": self.args
+                'status': self.status,
+                'args': self.args
             }
         )
-
-
