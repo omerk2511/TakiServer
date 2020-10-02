@@ -1,5 +1,5 @@
 from controller import controller
-from ..common import Message, Request, Response
+from ..common import Request, Response
 
 # move to responses/
 CREATE_GAME = {
@@ -18,4 +18,4 @@ def create_game(args):
     host = args['player_name']
     password = args['password']
     print ("[+] %s created lobby '%s'") % (host,lobby_name)
-    return Response(status,{'game_id': '1', 'jwt': 'RND'})
+    return Response(status,{'game_id': 'RND', 'jwt': 'RND'})

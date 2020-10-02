@@ -3,7 +3,7 @@ import json
 from threading import Thread, Lock
 
 
-from ..common import Message, Request, Response
+from ..common import Request, Response
 from ..requests.utils import validate_request
 from ..controllers import *
 
@@ -18,9 +18,6 @@ BAD_REQUEST = {
         "message": "Bad request"
     }
 }
-
-
-
 
 class Client(Thread):
     def __init__(self, sock, clients, ip, port):
@@ -41,7 +38,7 @@ class Client(Thread):
             try:
                 request = self._recieve_request()
                 request = Request.deserialize(request)
-                self.handle_request(request)
+                self.handle_request(request.code, request.args)
 
             except ValueError:
                 self._send_bad_request()
@@ -51,10 +48,8 @@ class Client(Thread):
                 return self.close()
 
 
-    def handle_request(self, request):
+    def handle_request(self,code, args):
         try:
-            code = request.code
-            args = request.args
             controller_function = get_controller_func(code)
             
             if controller_function:
