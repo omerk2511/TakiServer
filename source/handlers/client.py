@@ -44,11 +44,8 @@ class Client(Thread):
         try:
             controller_function = get_controller_func(code)
             
-            if controller_function:
-                response = controller_function(args)
-                self._send_message(response.serialize())
-            else:
-                self._send_bad_request()
+            response = controller_function(args)
+            self._send_message(response.serialize())
         except Exception as e:
             print ('[EXCEPTION]', e)
             self._send_bad_request()
@@ -87,4 +84,4 @@ class Client(Thread):
 
     def _send_bad_request(self):
         with self._socket_lock:
-            self._socket.send(json.dumps(Responses.GENERAL_BAD_REQUEST))
+            self._socket.send(Responses.GENERAL_BAD_REQUEST)
