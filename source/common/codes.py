@@ -1,12 +1,4 @@
 class Codes(object):
-    # General Codes and Statuses
-    SUCCESS = 'success'
-    BAD_REQUEST = 'bad_request'
-    DENIED = 'denied'
-    NOT_FOUND = 'not_found'
-    CONFLICT = 'conflict'
-
-
     # Server Broadcast Messages Codes
     PLAYER_JOINED = 'player_joined'
     PLAYER_LEFT = 'player_left'
@@ -24,3 +16,12 @@ class Codes(object):
     START_GAME = 'start_game'
     PLACE_CARDS = 'place_cards'
     TAKE_CARDS = 'take_cards'
+
+
+class Statuses(object):
+    # General Statuses
+    SUCCESS = 'success'
+    BAD_REQUEST = 'bad_request'
+    DENIED = 'denied'
+    NOT_FOUND = 'not_found'
+    CONFLICT = 'conflict'
