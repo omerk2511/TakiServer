@@ -1,4 +1,4 @@
-class Codes(object):
+class Code(object):
     # Server Broadcast Messages Codes
     PLAYER_JOINED = 'player_joined'
     PLAYER_LEFT = 'player_left'
@@ -18,7 +18,7 @@ class Codes(object):
     TAKE_CARDS = 'take_cards'
 
 
-class Statuses(object):
+class Status(object):
     # General Statuses
     SUCCESS = 'success'
     BAD_REQUEST = 'bad_request'

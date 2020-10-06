@@ -5,6 +5,14 @@ class Request(object):
         self.code = code
         self.args = kwargs
 
+    def serialize(self):
+        return json.dumps(
+            {
+                'code': self.code,
+                'args': self.args
+            }
+        )
+
     @classmethod
     def deserialize(cls, request):
         if 'code' not in request or 'args' not in request:

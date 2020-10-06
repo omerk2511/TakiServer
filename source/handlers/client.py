@@ -3,7 +3,7 @@ import json
 from threading import Thread, Lock
 
 
-from ..common import Request, Response, Codes, Statuses, Responses
+from ..common import Request, Response, Code, Status, Responses
 from ..controllers import *
 
 
