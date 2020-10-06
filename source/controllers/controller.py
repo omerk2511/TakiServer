@@ -1,5 +1,6 @@
 CONTROLLERS = {}
 
+
 def controller(code):
     def register_controller(func):
         CONTROLLERS[code] = func
@@ -7,8 +8,9 @@ def controller(code):
 
     return register_controller
 
+
 def get_controller_func(controller):
     if controller in CONTROLLERS:
         return CONTROLLERS[controller]
 
-    raise ValueError('invalid request')
+    raise ValueError('Invalid request')

@@ -1,10 +1,10 @@
 from controller import controller
-from ..common import Request, Response, Codes
+from ..common import Request, Response, Codes, Statuses
 
 
 @controller(Codes.CREATE_GAME)
 def create_game(args):
-    status = Codes.SUCCESS
+    status = Statuses.SUCCESS
     lobby_name = args['lobby_name']
     host = args['player_name']
     password = args['password']

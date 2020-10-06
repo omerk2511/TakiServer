@@ -3,8 +3,7 @@ import json
 from threading import Thread, Lock
 
 
-from ..common import Request, Response, Codes, Responses
-from ..requests.utils import validate_request
+from ..common import Request, Response, Codes, Statuses, Responses
 from ..controllers import *
 
 
@@ -27,6 +26,7 @@ class Client(Thread):
 
         print '[*] %s:%d has connected to the server' % (ip, port)
 
+
     def run(self):
         while self._running:
             try:
@@ -38,17 +38,15 @@ class Client(Thread):
                 continue
             except socket.error:
                 return self.close()
+            except Exception as e:
+                print '[-]', e
+                return self.close()
 
 
     def handle_request(self, code, args):
-        try:
-            controller_function = get_controller_func(code)
-            
-            response = controller_function(args)
-            self._send_message(response.serialize())
-        except Exception as e:
-            print ('[EXCEPTION]', e)
-            self._send_bad_request()
+        controller_function = get_controller_func(code)
+        response = controller_function(args)
+        self._send_message(response.serialize())
 
 
     def close(self):
@@ -74,7 +72,6 @@ class Client(Thread):
                         break
 
             request = json.loads(buffer)
-            validate_request(request)
 
             return request
 
@@ -82,6 +79,7 @@ class Client(Thread):
     def _send_message(self, message):
         self._socket.send(message)
 
+
     def _send_bad_request(self):
         with self._socket_lock:
-            self._socket.send(Responses.GENERAL_BAD_REQUEST)
+            self._socket.send(Responses.GENERAL_BAD_REQUEST.serialize())
