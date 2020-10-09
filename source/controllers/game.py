@@ -7,9 +7,9 @@ from ..games import create_game, join_game, leave_game, start_game
 @controller(Code.CREATE_GAME)
 @validator(Rule.CREATE_GAME)
 def create_game_controller(args, sock):
-    lobby_name = str(args['lobby_name'])
-    host = str(args['player_name'])
-    password = str(args['password'])
+    lobby_name = str(args['lobby_name']).strip()
+    host = str(args['player_name']).strip()
+    password = str(args['password']).strip()
 
     try:
         game = create_game(lobby_name, password, host, sock)
@@ -28,8 +28,8 @@ def create_game_controller(args, sock):
 @validator(Rule.JOIN_GAME)
 def join_game_controller(args, sock):
     game_id = args['game_id']
-    player_name = str(args['player_name'])
-    password = str(args['password'])
+    player_name = str(args['player_name']).strip()
+    password = str(args['password']).strip()
 
     try:
         join_game(player_name, game_id, password, sock)
@@ -48,7 +48,7 @@ def join_game_controller(args, sock):
 @authenticated
 def leave_game_controller(user, args, sock):
     try:
-        leave_game(str(user['player_name']), user['game_id'])
+        leave_game(str(user['player_name']).strip(), user['game_id'])
     except TakiException as e:
         return e.response()
     except Exception:
