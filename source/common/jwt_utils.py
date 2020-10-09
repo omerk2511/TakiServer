@@ -1,7 +1,9 @@
 import jwt
+from taki_exception import TakiException
+from codes import Status
 
 
-SECRET_KEY = 'my_secret_key' # move to config.py
+SECRET_KEY = 'my_secret_key'  # TODO: move to config.py
 
 
 def encode_player_jwt(game_id, player_name, is_host):
@@ -19,5 +21,5 @@ def encode_player_jwt(game_id, player_name, is_host):
 def decode_player_jwt(player_jwt):
     try:
         return jwt.decode(player_jwt, SECRET_KEY, algorithm='HS256')
-    except:
-        raise Exception('Invalid JWT.') # change to custom exception
+    except Exception:
+        raise TakiException(Status.BAD_REQUEST, 'Invalid JWT.')

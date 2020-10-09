@@ -3,8 +3,8 @@ import json
 from threading import Thread, Lock
 
 
-from ..common import Request, Response, Code, Status, Responses
-from ..controllers import *
+from ..common import Request, Responses
+from ..controllers import get_controller_func
 
 
 BUFFER_SIZE = 1024
@@ -26,7 +26,6 @@ class Client(Thread):
 
         print '[*] %s:%d has connected to the server' % (ip, port)
 
-
     def run(self):
         while self._running:
             try:
@@ -42,44 +41,43 @@ class Client(Thread):
                 print '[-]', e
                 return self.close()
 
-
     def handle_request(self, code, args):
         controller_function = get_controller_func(code)
         response = controller_function(args)
         self._send_message(response.serialize())
 
-
     def close(self):
+        # TODO: handle opened games with him
+
         self._clients.remove(self)
         self._running = False
 
         with self._socket_lock:
             self._socket.close()
 
-        print '[*] %s:%d has disconnected from the server' % (self._ip, self._port)
-
+        print '[*] %s:%d has disconnected from the server' % (
+            self._ip, self._port)
 
     def _recieve_request(self):
         with self._socket_lock:
             buffer = self._socket.recv(BUFFER_SIZE)
-            if not buffer: raise socket.error()
+            if not buffer:
+                raise socket.error()
 
             if len(buffer) == BUFFER_SIZE:
                 while True:
                     try:
                         buffer += self._socket.recv(BUFFER_SIZE)
-                    except:
+                    except Exception:
                         break
 
             request = json.loads(buffer)
 
             return request
 
-
     def _send_message(self, message):
         self._socket.send(message)
 
-
     def _send_bad_request(self):
         with self._socket_lock:
-            self._socket.send(Responses.GENERAL_BAD_REQUEST.serialize())
+            self._socket.send(Responses.BAD_REQUEST.serialize())

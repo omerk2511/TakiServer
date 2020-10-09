@@ -8,7 +8,6 @@ class Code(object):
     PLAYER_WON = 'player_won'
     GAME_ENDED = 'game_ended'
 
-
     # Requests Codes
     CREATE_GAME = 'create_game'
     JOIN_GAME = 'join_game'
@@ -25,3 +24,4 @@ class Status(object):
     DENIED = 'denied'
     NOT_FOUND = 'not_found'
     CONFLICT = 'conflict'
+    INTERNAL_ERROR = 'internal_error'

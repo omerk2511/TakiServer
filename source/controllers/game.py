@@ -1,6 +1,7 @@
 from controller import controller
-from ..common import validator, encode_player_jwt, Request, Response, Code, Status, Rule
-from ..games import create_game, join_game
+from ..common import validator, encode_player_jwt, Response, Code, \
+    Status, Rule, Responses, TakiException, authenticated
+from ..games import create_game, join_game, leave_game, start_game
 
 
 @controller(Code.CREATE_GAME)
@@ -12,13 +13,15 @@ def create_game_controller(args):
 
     try:
         game = create_game(lobby_name, host, password)
-    except:
-        # handle no available lobbies
-        pass
+    except TakiException as e:
+        return e.response()
+    except Exception:
+        return Responses.INTERNAL_ERROR
 
-    print '[+] %s created game %s successfully' % (host, lobby_name)
+    print '[+] %s created game %s successfully' % (host, game.id)
 
-    return Response(Status.SUCCESS, game_id = game.id, jwt = encode_player_jwt(game.id, host, True))
+    return Response(Status.SUCCESS, game_id=game.id, jwt=encode_player_jwt(
+        game.id, host, True))
 
 
 @controller(Code.JOIN_GAME)
@@ -30,10 +33,46 @@ def join_game_controller(args):
 
     try:
         join_game(player_name, game_id, password)
-    except:
-        # handle custom error
-        pass
-    
+    except TakiException as e:
+        return e.response()
+    except Exception:
+        return Responses.INTERNAL_ERROR
+
     print '[+] %s joined game %d successfully' % (player_name, game_id)
 
-    return Response(Status.SUCCESS, jwt = encode_player_jwt(game_id, player_name, False))
+    return Response(Status.SUCCESS,
+                    jwt=encode_player_jwt(game_id, player_name, False))
+
+
+@controller(Code.LEAVE_GAME)
+@authenticated
+def leave_game_controller(user, args):
+    try:
+        leave_game(user['player_name'], user['game_id'])
+    except TakiException as e:
+        return e.response()
+    except Exception:
+        return Responses.INTERNAL_ERROR
+
+    print '[+] %s left game %d successfully' % (user['player_name'], user['game_id'])
+
+    return Response(Status.SUCCESS)
+
+
+@controller(Code.START_GAME)
+@authenticated
+def start_game_controller(user, args):
+    if not user['is_host']:
+        return Response(Status.DENIED,
+                        message='You are not the administrator of the lobby.')
+
+    try:
+        start_game(user['game_id'])
+    except TakiException as e:
+        return e.response()
+    except Exception:
+        return Responses.INTERNAL_ERROR
+
+    print '[+] game %d started successfully' % (user['game_id'])
+
+    return Response(Status.SUCCESS)

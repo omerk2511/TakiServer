@@ -95,6 +95,17 @@ The optional values are:
 }
 ```
 
+**Denied Response:**
+
+```json
+{
+    "status": "denied",
+    "args": {
+        "message": "No game ID available."
+    }
+}
+```
+
 ### Joining a Game
 
 **Request:**

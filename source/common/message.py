@@ -1,7 +1,8 @@
 import json
 
+
 class Request(object):
-    def __init__(self, code, **kwargs): # each request has code and args
+    def __init__(self, code, **kwargs):
         self.code = code
         self.args = kwargs
 
@@ -19,10 +20,10 @@ class Request(object):
             raise Exception('Invalid message')
 
         return cls(request['code'], **request['args'])
- 
+
 
 class Response(object):
-    def __init__(self, status, **kwargs): # each response has status and args. 
+    def __init__(self, status, **kwargs):
         self.status = status
         self.args = kwargs
 
