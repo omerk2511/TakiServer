@@ -23,9 +23,9 @@ def validate_args(args, rules):
 def validator(rules):
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(args):
+        def wrapper(args, sock):
             if validate_args(args, rules):
-                return func(args)
+                return func(args, sock)
 
             raise ValueError('Invalid request.')
 
@@ -36,11 +36,11 @@ def validator(rules):
 
 def authenticated(func):
     @functools.wraps(func)
-    def wrapper(args):
+    def wrapper(args, sock):
         try:
             user = decode_player_jwt(args['jwt'])
             del args['jwt']
-            return func(user, args)
+            return func(user, args, sock)
         except TakiException as e:
             return e.response()
         except Exception:

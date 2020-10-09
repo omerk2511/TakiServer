@@ -6,16 +6,16 @@ from ..games import create_game, join_game, leave_game, start_game
 
 @controller(Code.CREATE_GAME)
 @validator(Rule.CREATE_GAME)
-def create_game_controller(args):
+def create_game_controller(args, sock):
     lobby_name = str(args['lobby_name'])
     host = str(args['player_name'])
     password = str(args['password'])
 
     try:
-        game = create_game(lobby_name, host, password)
+        game = create_game(lobby_name, password, host, sock)
     except TakiException as e:
         return e.response()
-    except Exception:
+    except Exception as e:
         return Responses.INTERNAL_ERROR
 
     print '[+] %s created game %s successfully' % (host, game.id)
@@ -26,13 +26,13 @@ def create_game_controller(args):
 
 @controller(Code.JOIN_GAME)
 @validator(Rule.JOIN_GAME)
-def join_game_controller(args):
+def join_game_controller(args, sock):
     game_id = args['game_id']
     player_name = str(args['player_name'])
     password = str(args['password'])
 
     try:
-        join_game(player_name, game_id, password)
+        join_game(player_name, game_id, password, sock)
     except TakiException as e:
         return e.response()
     except Exception:
@@ -46,9 +46,9 @@ def join_game_controller(args):
 
 @controller(Code.LEAVE_GAME)
 @authenticated
-def leave_game_controller(user, args):
+def leave_game_controller(user, args, sock):
     try:
-        leave_game(user['player_name'], user['game_id'])
+        leave_game(str(user['player_name']), user['game_id'])
     except TakiException as e:
         return e.response()
     except Exception:
@@ -61,7 +61,7 @@ def leave_game_controller(user, args):
 
 @controller(Code.START_GAME)
 @authenticated
-def start_game_controller(user, args):
+def start_game_controller(user, args, sock):
     if not user['is_host']:
         return Response(Status.DENIED,
                         message='You are not the administrator of the lobby.')
