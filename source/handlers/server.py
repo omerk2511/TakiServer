@@ -5,6 +5,7 @@ from client import Client
 LISTEN_AMOUNT = 5
 SERVER_TIMEOUT = 0.5
 
+
 class Server(object):
     def __init__(self, ip, port):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -47,5 +48,5 @@ class Server(object):
         for client in self._clients:
             client.close()
             client.join()
-        
+
         self._socket.close()

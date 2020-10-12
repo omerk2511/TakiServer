@@ -1,8 +1,10 @@
 from message import Response
-from codes import Codes, Statuses
+from codes import Status
 
 
 class Responses(object):
     # Hardcoded Responses
-    GENERAL_SUCCESS = Response(Statuses.SUCCESS)
-    GENERAL_BAD_REQUEST = Response(Statuses.BAD_REQUEST, message = 'Bad request')
+    SUCCESS = Response(Status.SUCCESS)
+    BAD_REQUEST = Response(Status.BAD_REQUEST, message='Bad request')
+    INTERNAL_ERROR = Response(Status.INTERNAL_ERROR,
+                              message='Unknown internal error')

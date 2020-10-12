@@ -1,4 +1,4 @@
-class Codes(object):
+class Code(object):
     # Server Broadcast Messages Codes
     PLAYER_JOINED = 'player_joined'
     PLAYER_LEFT = 'player_left'
@@ -7,7 +7,6 @@ class Codes(object):
     MOVE_DONE = 'move_done'
     PLAYER_WON = 'player_won'
     GAME_ENDED = 'game_ended'
-
 
     # Requests Codes
     CREATE_GAME = 'create_game'
@@ -18,10 +17,11 @@ class Codes(object):
     TAKE_CARDS = 'take_cards'
 
 
-class Statuses(object):
+class Status(object):
     # General Statuses
     SUCCESS = 'success'
     BAD_REQUEST = 'bad_request'
     DENIED = 'denied'
     NOT_FOUND = 'not_found'
     CONFLICT = 'conflict'
+    INTERNAL_ERROR = 'internal_error'
