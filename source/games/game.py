@@ -57,8 +57,10 @@ class Game(object):
         # TODO: add card generation
 
     def player_joined(self, player_name):
-        return player_name in self.players
+        with self._game_lock:
+            return player_name in self.players
 
     def broadcast(self, message):
-        for sock in self.sockets:
-            sock.send(message.serialize())
+        with self._game_lock:
+            for sock in self.sockets:
+                sock.send(message.serialize())
