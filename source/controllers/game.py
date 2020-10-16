@@ -54,7 +54,8 @@ def leave_game_controller(user, args, sock):
     except Exception:
         return Responses.INTERNAL_ERROR
 
-    print '[+] %s left game %d successfully' % (user['player_name'], user['game_id'])
+    print '[+] %s left game %d successfully' % (user['player_name'],
+                                                user['game_id'])
 
     return Response(Status.SUCCESS)
 
