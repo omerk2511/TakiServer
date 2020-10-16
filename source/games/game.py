@@ -59,3 +59,6 @@ class Game(object):
     def broadcast(self, message):
         for sock in self.sockets:
             sock.send(message.serialize())
+
+    def does_player_exiset(self,sock):
+        return sock in self.sockets

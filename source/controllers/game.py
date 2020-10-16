@@ -2,7 +2,7 @@ from controller import controller
 from ..common import validator, encode_player_jwt, Response, Code, \
     Status, Rule, Responses, TakiException, authenticated
 from ..games import create_game, join_game, leave_game, start_game
-
+from .game import does_player_exiset
 
 @controller(Code.CREATE_GAME)
 @validator(Rule.CREATE_GAME)
@@ -30,13 +30,16 @@ def join_game_controller(args, sock):
     game_id = args['game_id']
     player_name = str(args['player_name']).strip()
     password = str(args['password']).strip()
-
-    try:
-        join_game(player_name, game_id, password, sock)
-    except TakiException as e:
-        return e.response()
-    except Exception:
-        return Responses.INTERNAL_ERROR
+    if does_player_exiset(sock):
+        try:
+            join_game(player_name, game_id, password, sock)
+        except TakiException as e:
+            return e.response()
+        except Exception:
+            return Responses.INTERNAL_ERROR
+    else :
+        return Responses.BAD_REQUEST
+    
 
     print '[+] %s joined game %d successfully' % (player_name, game_id)
 
