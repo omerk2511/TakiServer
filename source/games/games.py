@@ -38,3 +38,12 @@ def start_game(game_id):
 
     game = games[game_id]
     game.start()
+
+
+def take_cards(player_name, game_id):
+    if game_id not in games:
+        raise TakiException(Status.NOT_FOUND,
+                            'A game with the supplied game ID was not found.')
+
+    game = games[game_id]
+    return game.take_cards(player_name)

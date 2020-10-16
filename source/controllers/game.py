@@ -1,7 +1,7 @@
 from controller import controller
 from ..common import validator, encode_player_jwt, Response, Code, \
     Status, Rule, Responses, TakiException, authenticated
-from ..games import create_game, join_game, leave_game, start_game
+from ..games import create_game, join_game, leave_game, start_game, take_cards
 
 
 @controller(Code.CREATE_GAME)
@@ -77,3 +77,23 @@ def start_game_controller(user, args, sock):
     print '[+] game %d started successfully' % (user['game_id'])
 
     return Response(Status.SUCCESS)
+
+
+@controller(Code.TAKE_CARDS)
+@authenticated
+def take_cards_controller(user, args, sock):
+    try:
+        cards = take_cards(str(user['player_name']).strip(), user['game_id'])
+    except TakiException as e:
+        return e.response()
+    except Exception:
+        return Responses.INTERNAL_ERROR
+
+    return Response(Status.SUCCESS, cards=[card.serialize() for card in cards])
+
+
+@controller(Code.PLACE_CARDS)
+@authenticated
+def place_cards_controller(user, args, sock):
+    # TODO: manage card placement
+    pass

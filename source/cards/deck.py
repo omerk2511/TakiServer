@@ -32,6 +32,9 @@ class Deck(object):
     def get_random_card(self):
         return self.cards.pop()
 
+    def get_random_cards(self, amount=1):
+        return [self.cards.pop() for _ in xrange(amount)]
+
     def get_hand(self):
         return Hand([self.cards.pop() for _ in xrange(HAND_INITIAL_SIZE)])
 
