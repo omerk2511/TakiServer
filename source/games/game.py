@@ -4,17 +4,17 @@ MAX_PLAYERS = 4
 
 
 class Game(object):
-    def __init__(self, game_id, name, password, host, sock):
+    def __init__(self, game_id, name, password, host, client):
         self.id = game_id
         self.name = name
         self.password = password
         self.host = host
         self.started = False
         self.players = [host]
-        self.sockets = [sock]
+        self.sockets = [client.sock]
         # TODO: add a lock
 
-    def add_player(self, player_name, password, sock):
+    def add_player(self, player_name, password, client):
         if self.started:
             raise TakiException(Status.DENIED, 'The game has already started.')
 
@@ -30,7 +30,7 @@ class Game(object):
 
         self.players.append(player_name)
         self.broadcast(Request(Code.PLAYER_JOINED, player_name=player_name))
-        self.sockets.append(sock)
+        self.sockets.append(client.sock)
 
     def remove_player(self, player_name):
         if not self.player_joined(player_name):
@@ -60,5 +60,3 @@ class Game(object):
         for sock in self.sockets:
             sock.send(message.serialize())
 
-    def does_player_exiset(self,sock):
-        return sock in self.sockets
