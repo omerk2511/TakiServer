@@ -3,6 +3,7 @@ from jwt_utils import decode_player_jwt
 from taki_exception import TakiException
 from message import Response
 from codes import Status
+from responses import Responses
 
 RULE_NAME = 0
 RULE_CALLBACK = 1
@@ -23,9 +24,9 @@ def validate_args(args, rules):
 def validator(rules):
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(args, sock):
+        def wrapper(args, client):
             if validate_args(args, rules):
-                return func(args, sock)
+                return func(args, client)
 
             raise ValueError('Invalid request.')
 
@@ -36,14 +37,25 @@ def validator(rules):
 
 def authenticated(func):
     @functools.wraps(func)
-    def wrapper(args, sock):
+    def wrapper(args, client):
         try:
             user = decode_player_jwt(args['jwt'])
             del args['jwt']
-            return func(user, args, sock)
+            return func(user, args, client)
         except TakiException as e:
             return e.response()
         except Exception:
             return Response(Status.BAD_REQUEST, message='No JWT supplied.')
+
+    return wrapper
+
+
+def not_in_game(func):
+    @functools.wraps(func)
+    def wrapper(args, client):
+        if client.in_game:
+            return Responses.BAD_REQUEST
+
+        return func(args, client)
 
     return wrapper

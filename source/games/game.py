@@ -5,17 +5,17 @@ MAX_PLAYERS = 4
 
 
 class Game(object):
-    def __init__(self, game_id, name, password, host, sock):
+    def __init__(self, game_id, name, password, host, client):
         self.id = game_id
         self.name = name
         self.password = password
         self.host = host
         self.started = False
         self.players = [host]
-        self.sockets = [sock]
+        self.clients = [client]
         self._game_lock = Lock()
 
-    def add_player(self, player_name, password, sock):
+    def add_player(self, player_name, password, client):
         if self.started:
             raise TakiException(Status.DENIED, 'The game has already started.')
 
@@ -28,11 +28,12 @@ class Game(object):
 
         if password != self.password:
             raise TakiException(Status.DENIED, 'Invalid password.')
-        
+
         self.broadcast(Request(Code.PLAYER_JOINED, player_name=player_name))
+
         with self._game_lock:
             self.players.append(player_name)
-            self.sockets.append(sock)
+            self.clients.append(client)
 
     def remove_player(self, player_name):
         if not self.player_joined(player_name):
@@ -40,7 +41,7 @@ class Game(object):
                                 'This player is not in the game lobby.')
 
         with self._game_lock:
-            del self.sockets[self.players.index(player_name)]
+            del self.clients[self.players.index(player_name)]
             self.players.remove(player_name)
 
         if player_name == self.host:
@@ -62,5 +63,5 @@ class Game(object):
 
     def broadcast(self, message):
         with self._game_lock:
-            for sock in self.sockets:
-                sock.send(message.serialize())
+            for client in self.clients:
+                client.sock.send(message.serialize())
