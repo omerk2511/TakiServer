@@ -3,6 +3,7 @@ from jwt_utils import decode_player_jwt
 from taki_exception import TakiException
 from message import Response
 from codes import Status
+from responses import Responses
 
 RULE_NAME = 0
 RULE_CALLBACK = 1
@@ -45,5 +46,16 @@ def authenticated(func):
             return e.response()
         except Exception:
             return Response(Status.BAD_REQUEST, message='No JWT supplied.')
+
+    return wrapper
+
+
+def not_in_game(func):
+    @functools.wraps(func)
+    def wrapper(args, client):
+        if client.in_game:
+            return Responses.BAD_REQUEST
+
+        return func(args, client)
 
     return wrapper
