@@ -11,7 +11,7 @@ class Game(object):
         self.host = host
         self.started = False
         self.players = [host]
-        self.sockets = [client.sock]
+        self.clients = [client]
         # TODO: add a lock
 
     def add_player(self, player_name, password, client):
@@ -30,14 +30,14 @@ class Game(object):
 
         self.players.append(player_name)
         self.broadcast(Request(Code.PLAYER_JOINED, player_name=player_name))
-        self.sockets.append(client.sock)
+        self.clients.append(client)
 
     def remove_player(self, player_name):
         if not self.player_joined(player_name):
             raise TakiException(Status.BAD_REQUEST,
                                 'This player is not in the game lobby.')
 
-        del self.sockets[self.players.index(player_name)]
+        del self.clients[self.players.index(player_name)]
         self.players.remove(player_name)
 
         if player_name == self.host:
@@ -57,6 +57,6 @@ class Game(object):
         return player_name in self.players
 
     def broadcast(self, message):
-        for sock in self.sockets:
-            sock.send(message.serialize())
+        for client in self.clients:
+            client.sock.send(message.serialize())
 

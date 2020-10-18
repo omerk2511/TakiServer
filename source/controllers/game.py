@@ -11,7 +11,7 @@ def create_game_controller(args, client):
     password = str(args['password']).strip()
     if not client.in_game:
         try:
-            game = create_game(lobby_name, password, host, client.sock)
+            game = create_game(lobby_name, password, host, client)
             client.in_game = True
         except TakiException as e:
             return e.response()
@@ -33,7 +33,7 @@ def join_game_controller(args, client):
     password = str(args['password']).strip()
     if not client.in_game:
         try:
-            join_game(player_name, game_id, password, client.sock)
+            join_game(player_name, game_id, password, client)
             client.in_game = True
         except TakiException as e:
             return e.response()
@@ -50,7 +50,7 @@ def join_game_controller(args, client):
 
 @controller(Code.LEAVE_GAME)
 @authenticated
-def leave_game_controller(user, args, sock):
+def leave_game_controller( client):
     try:
         leave_game(str(user['player_name']).strip(), user['game_id'])
     except TakiException as e:
@@ -65,7 +65,7 @@ def leave_game_controller(user, args, sock):
 
 @controller(Code.START_GAME)
 @authenticated
-def start_game_controller(user, args, sock):
+def start_game_controller(user, args, client):
     if not user['is_host']:
         return Response(Status.DENIED,
                         message='You are not the administrator of the lobby.')
