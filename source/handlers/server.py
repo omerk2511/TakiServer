@@ -41,7 +41,7 @@ class Server(object):
             except socket.timeout:
                 continue
             except Exception as e:
-                print '[-] unknown exception: ', e
+                print '[-] unknown exception:', e
                 break
 
     def _close(self):

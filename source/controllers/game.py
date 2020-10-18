@@ -50,7 +50,7 @@ def join_game_controller(args, client):
 
 @controller(Code.LEAVE_GAME)
 @authenticated
-def leave_game_controller( client):
+def leave_game_controller(user, args, sock):
     try:
         leave_game(str(user['player_name']).strip(), user['game_id'])
     except TakiException as e:
