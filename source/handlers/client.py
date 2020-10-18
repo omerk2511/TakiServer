@@ -80,4 +80,4 @@ class Client(Thread):
 
     def _send_bad_request(self):
         with self._socket_lock:
-            self._socket.send(Responses.BAD_REQUEST.serialize())
+            self._send_message(Responses.BAD_REQUEST.serialize())

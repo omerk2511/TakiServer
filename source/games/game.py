@@ -1,4 +1,5 @@
 from ..common import TakiException, Status, Request, Code
+from threading import Lock
 
 MAX_PLAYERS = 4
 
@@ -12,7 +13,7 @@ class Game(object):
         self.started = False
         self.players = [host]
         self.clients = [client]
-        # TODO: add a lock
+        self._game_lock = Lock()
 
     def add_player(self, player_name, password, client):
         if self.started:
@@ -28,17 +29,20 @@ class Game(object):
         if password != self.password:
             raise TakiException(Status.DENIED, 'Invalid password.')
 
-        self.players.append(player_name)
         self.broadcast(Request(Code.PLAYER_JOINED, player_name=player_name))
-        self.clients.append(client)
+
+        with self._game_lock:
+            self.players.append(player_name)
+            self.clients.append(client)
 
     def remove_player(self, player_name):
         if not self.player_joined(player_name):
             raise TakiException(Status.BAD_REQUEST,
                                 'This player is not in the game lobby.')
 
-        del self.clients[self.players.index(player_name)]
-        self.players.remove(player_name)
+        with self._game_lock:
+            del self.clients[self.players.index(player_name)]
+            self.players.remove(player_name)
 
         if player_name == self.host:
             pass  # TODO: close game and broadcast
@@ -54,9 +58,10 @@ class Game(object):
         # TODO: add card generation
 
     def player_joined(self, player_name):
-        return player_name in self.players
+        with self._game_lock:
+            return player_name in self.players
 
     def broadcast(self, message):
-        for client in self.clients:
-            client.sock.send(message.serialize())
-
+        with self._game_lock:
+            for client in self.clients:
+                client.sock.send(message.serialize())
