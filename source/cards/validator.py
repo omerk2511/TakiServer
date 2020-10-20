@@ -5,7 +5,7 @@ FIRST_STATE_MACHINE = {
     CardType.NUMBER_CARD: lambda card, other, plus_2_active: card.color == other.color or card.value == other.value or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
     CardType.PLUS: lambda card, other, plus_2_active: card.type == other.type or card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
     CardType.PLUS_2: lambda card, other, plus_2_active: card.type == other.type or (not plus_2_active and (card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI))),
-    CardType.STOP: lambda card, other, plus_2_active: True,
+    CardType.STOP: lambda card, other, plus_2_active: card.type == other.type or card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
     CardType.CHANGE_DIRECTION: lambda card, other, plus_2_active: card.type == other.type or card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
     CardType.CHANGE_COLOR: lambda card, other, plus_2_active: card.type == other.type or card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
     CardType.TAKI: lambda card, other, plus_2_active: card.type == other.type or card.color == other.color or other.type in (CardType.CHANGE_COLOR, CardType.SUPER_TAKI),
