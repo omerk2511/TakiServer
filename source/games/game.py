@@ -143,7 +143,7 @@ class Game(object):
                                cards=raw_cards, player_name=player_name))
 
         if hand.empty():
-            return self.end_game()
+            return self.end_game(player_name)
 
         self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.players)
         self.update_turn()
@@ -169,6 +169,6 @@ class Game(object):
             for player in self.players:
                 player['socket'].send(message.serialize())
 
-    def end_game(self):
-        self.broadcast(Request(Code.PLAYER_WON, player_name=player_name))
+    def end_game(self, winner):
+        self.broadcast(Request(Code.PLAYER_WON, player_name=winner))
         # TODO: update each client object...
