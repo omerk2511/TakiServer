@@ -7,3 +7,12 @@ class Hand(object):
 
     def append_cards(self, cards):
         self.cards.extend(cards)
+
+    def remove_card(self, card):
+        self.cards.remove(card)
+
+    def card_exists(self, card, count=1):
+        return self.cards.count(card) >= count
+
+    def empty(self):
+        return len(self.cards) == 0

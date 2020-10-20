@@ -35,3 +35,7 @@ def start_game(game_id):
 
 def take_cards(player_name, game_id):
     return find_game(game_id).take_cards(player_name)
+
+
+def place_cards(player_name, raw_cards, game_id):
+    return find_game(game_id).place_cards(player_name, raw_cards)

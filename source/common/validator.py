@@ -40,10 +40,11 @@ def authenticated(func):
         try:
             user = decode_player_jwt(args['jwt'])
             del args['jwt']
-            return func(user, args, sock)
         except TakiException as e:
             return e.response()
         except Exception:
             return Response(Status.BAD_REQUEST, message='No JWT supplied.')
+        
+        return func(user, args, sock)
 
     return wrapper

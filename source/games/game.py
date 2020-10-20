@@ -1,5 +1,5 @@
 from ..common import TakiException, Status, Request, Code
-from ..cards import Deck
+from ..cards import Card, Deck, CardType, valid_move
 from threading import Lock
 import random
 
@@ -21,6 +21,9 @@ class Game(object):
         self.deck = Deck()
         self.current_player = 0
         self.plus_2_count = 0
+        self.plus_2_active = False
+        self.last_card = Card(None, '', '')
+        self.direction = 1
 
     def add_player(self, player_name, password, sock):
         if self.started:
@@ -73,14 +76,15 @@ class Game(object):
             player['hand'] = self.deck.get_hand()
             player['socket'].send(Request(Code.GAME_STARTING,
                                           players=player_names,
-                                          cards=player['hand'].cards
+                                          cards=[card.serialize() for card in player['hand'].cards]
                                           ).serialize())
 
-        self.broadcast(Request(Code.UPDATE_TURN,
-                               current_player=self.players[
-                                   self.current_player]['name']))
+        self.update_turn()
 
     def take_cards(self, player_name):
+        if self.current_player != self.find_player(player_name):
+            raise TakiException(Status.DENIED, 'It\'s not your turn.')
+
         count = 1 if not self.plus_2_count else self.plus_2_count
         cards = self.deck.get_random_cards(count)
 
@@ -88,11 +92,70 @@ class Game(object):
         self.broadcast(Request(Code.MOVE_DONE, type='cards_taken',
                                amount=count, player_name=player_name))
 
+        self.plus_2_count = 0
+        self.plus_2_active = False
+
+        self.current_player = (self.current_player + self.direction) % len(self.players)
+        self.update_turn()
+
         return cards
+
+    def place_cards(self, player_name, raw_cards):
+        if self.current_player != self.find_player(player_name):
+            raise TakiException(Status.DENIED, 'It\'s not your turn.')
+
+        if len(raw_cards) == 0:
+            raise TakiException(Status.BAD_REQUEST, 'You must supply at least one card.')
+
+        cards = [Card.deserialize(raw_card) for raw_card in raw_cards]
+
+        player = self.find_player(player_name)
+        hand = self.players[player]['hand']
+
+        first = True
+        stop_done = False
+        in_taki = False
+
+        for card in cards:
+            if not hand.card_exists(card, cards.count(card)) or \
+                    not valid_move(card, self.last_card, first, in_taki, self.plus_2_active):
+                raise TakiException(Status.BAD_REQUEST, 'Invalid move done.')
+
+            if card.type == CardType.STOP:
+                stop_done = True
+
+            if card.type == CardType.TAKI or card.type == CardType.SUPER_TAKI:
+                in_taki = True
+
+            if card.type == CardType.PLUS_2:
+                self.plus_2_count += 2
+                self.plus_2_active = True
+
+            if card.type == CardType.CHANGE_DIRECTION:
+                self.direction = -self.direction
+
+            first = False
+            self.last_card = card
+
+            hand.remove_card(card)
+
+        self.broadcast(Request(Code.MOVE_DONE, type='cards_placed',
+                               cards=raw_cards, player_name=player_name))
+
+        if hand.empty():
+            return self.end_game()
+
+        self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.players)
+        self.update_turn()
+
+    def update_turn(self):
+        self.broadcast(Request(Code.UPDATE_TURN,
+                               current_player=self.players[
+                                   self.current_player]['name']))
 
     def player_joined(self, player_name):
         with self.game_lock:
-            return player_name in self.players
+            return self.find_player(player_name) is not None
 
     def find_player(self, player_name):
         return next((i for i, player in enumerate(self.players)
@@ -103,5 +166,9 @@ class Game(object):
 
     def broadcast(self, message):
         with self.game_lock:
-            for sock in self.sockets:
-                sock.send(message.serialize())
+            for player in self.players:
+                player['socket'].send(message.serialize())
+
+    def end_game(self):
+        self.broadcast(Request(Code.PLAYER_WON, player_name=player_name))
+        # TODO: update each client object...
