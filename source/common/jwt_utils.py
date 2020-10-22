@@ -1,9 +1,7 @@
 import jwt
 from taki_exception import TakiException
 from codes import Status
-
-
-SECRET_KEY = 'my_secret_key'  # TODO: move to config.py
+from config import SECRET_KEY
 
 
 def encode_player_jwt(game_id, player_name, is_host):

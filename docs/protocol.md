@@ -203,8 +203,9 @@ The optional values are:
 ```json
 {
     "code": "leave_game",
-    "jwt":  "",
-    "args": {}
+    "args": {
+        "jwt": ""
+    }
 }
 ```
 
@@ -235,8 +236,9 @@ The optional values are:
 ```json
 {
     "code": "start_game",
-    "jwt":  "",
-    "args": {}
+    "args": {
+        "jwt": ""
+    }
 }
 ```
 
@@ -303,9 +305,9 @@ This message is not a real broadcast message. It is sent to each user separately
 ```json
 {
     "code": "place_cards",
-    "jwt":  "",
     "args": {
-        "cards": []
+        "cards":    [],
+        "jwt":      ""
     }
 }
 ```
@@ -348,8 +350,9 @@ This message is not a real broadcast message. It is sent to each user separately
 ```json
 {
     "code": "take_cards",
-    "jwt":  "",
-    "args": {}
+    "args": {
+        "jwt": ""
+    }
 }
 ```
 
@@ -383,7 +386,7 @@ This message is not a real broadcast message. It is sent to each user separately
 
 ```json
 {
-    "code": "player_won",
+    "code": "player_finished",
     "args": {
         "player_name": ""
     }

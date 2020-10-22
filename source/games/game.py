@@ -24,6 +24,7 @@ class Game(object):
         self.plus_2_active = False
         self.last_card = Card(None, '', '')
         self.direction = 1
+        self.scoreboard = []
 
     def add_player(self, player_name, password, client):
         if self.started:
@@ -54,6 +55,10 @@ class Game(object):
             raise TakiException(Status.BAD_REQUEST,
                                 'This player is not in the game lobby.')
 
+        if self.started:
+            raise TakiException(Status.BAD_REQUEST,
+                                'The game has already started.')
+
         with self.game_lock:
             del self.players[self.find_player(player_name)]
 
@@ -69,12 +74,14 @@ class Game(object):
         self.started = True
         self.shuffle_players()
 
+        self.active_players = self.players[:]
+
         for i, player in enumerate(self.players):
             player_names = [p['name'] for p in (
                 self.players[i:] + self.players[:i])]
 
             player['hand'] = self.deck.get_hand()
-            player['socket'].send(Request(Code.GAME_STARTING,
+            player['client']._socket.send(Request(Code.GAME_STARTING,
                                           players=player_names,
                                           cards=[card.serialize() for card in player['hand'].cards]
                                           ).serialize())
@@ -90,14 +97,14 @@ class Game(object):
         count = 1 if not self.plus_2_count else self.plus_2_count
         cards = self.deck.get_random_cards(count)
 
-        self.players[self.find_player(player_name)]['hand'].append_cards(cards)
+        self.active_players[self.find_player(player_name)]['hand'].append_cards(cards)
         self.broadcast(Request(Code.MOVE_DONE, type='cards_taken',
                                amount=count, player_name=player_name))
 
         self.plus_2_count = 0
         self.plus_2_active = False
 
-        self.current_player = (self.current_player + self.direction) % len(self.players)
+        self.current_player = (self.current_player + self.direction) % len(self.active_players)
         self.update_turn()
 
         return cards
@@ -112,7 +119,7 @@ class Game(object):
         cards = [Card.deserialize(raw_card) for raw_card in raw_cards]
 
         player = self.find_player(player_name)
-        hand = self.players[player]['hand']
+        hand = self.active_players[player]['hand']
 
         first = True
         stop_done = False
@@ -154,14 +161,18 @@ class Game(object):
                                cards=raw_cards, player_name=player_name))
 
         if hand.empty():
-            return self.end_game(player_name)
+            if player == len(self.active_players) - 1:
+                self.current_player = 0
 
-        self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.players)
+            self.player_finished(player_name)
+        else:
+            self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
+
         self.update_turn()
 
     def update_turn(self):
         self.broadcast(Request(Code.UPDATE_TURN,
-                               current_player=self.players[
+                               current_player=self.active_players[
                                    self.current_player]['name']))
 
     def player_joined(self, player_name):
@@ -169,17 +180,27 @@ class Game(object):
             return self.find_player(player_name) is not None
 
     def find_player(self, player_name):
-        return next((i for i, player in enumerate(self.players)
+        return next((i for i, player in enumerate(self.active_players)
                     if player['name'] == player_name), None)
 
     def shuffle_players(self):
         random.shuffle(self.players)
 
+    def player_finished(self, player_name):
+        self.broadcast(Request(Code.PLAYER_FINISHED, player_name=player_name))
+
+        self.scoreboard.append(player_name)
+        del self.active_players[self.find_player(player_name)]
+
+        if len(self.scoreboard) == len(self.players) - 1:
+            last_name = self.active_players[0]['name']
+
+            self.broadcast(Request(Code.PLAYER_FINISHED, player_name=last_name))
+            self.scoreboard.append(last_name)
+
+            self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
+
     def broadcast(self, message):
         with self.game_lock:
             for player in self.players:
                 player['client']._socket.send(message.serialize())
-
-    def end_game(self, winner):
-        self.broadcast(Request(Code.PLAYER_WON, player_name=winner))
-        # TODO: update each client object...
