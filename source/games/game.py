@@ -115,12 +115,17 @@ class Game(object):
         first = True
         stop_done = False
         in_taki = False
+        last_card = self.last_card
 
         for card in cards:
             if not hand.card_exists(card, cards.count(card)) or \
                     not valid_move(card, self.last_card, first, in_taki, self.plus_2_active):
                 raise TakiException(Status.BAD_REQUEST, 'Invalid move done.')
 
+            first = False
+            last_card = card
+
+        for card in cards:
             if card.type == CardType.STOP:
                 stop_done = True
 
@@ -134,10 +139,9 @@ class Game(object):
             if card.type == CardType.CHANGE_DIRECTION:
                 self.direction = -self.direction
 
-            first = False
-            self.last_card = card
-
             hand.remove_card(card)
+
+        self.last_card = last_card
 
         self.broadcast(Request(Code.MOVE_DONE, type='cards_placed',
                                cards=raw_cards, player_name=player_name))

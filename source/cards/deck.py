@@ -29,14 +29,11 @@ class Deck(object):
     def shuffle(self):
         random.shuffle(self.cards)
 
-    def get_random_card(self):
-        return self.cards.pop()
-
     def get_random_cards(self, amount=1):
         return [self.cards.pop() for _ in xrange(amount)]
 
     def get_hand(self):
-        return Hand([self.cards.pop() for _ in xrange(HAND_INITIAL_SIZE)])
+        return Hand(self.get_random_cards(HAND_INITIAL_SIZE))
 
     def add_card(self, card):
         self.cards.insert(0, card)
