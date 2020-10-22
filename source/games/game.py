@@ -1,6 +1,5 @@
 from ..common import TakiException, Status, Request, Code
 from ..cards import Card, Deck, CardType, valid_move
-from games import delete_game
 from threading import Lock
 import random
 
@@ -8,7 +7,7 @@ MAX_PLAYERS = 4
 
 
 class Game(object):
-    def __init__(self, game_id, name, password, host, client):
+    def __init__(self, game_id, name, password, host, client, games):
         self.id = game_id
         self.name = name
         self.password = password
@@ -26,6 +25,7 @@ class Game(object):
         self.last_card = Card(None, '', '')
         self.direction = 1
         self.scoreboard = []
+        self.games = games
 
     def add_player(self, player_name, password, client):
         if self.started:
@@ -74,7 +74,7 @@ class Game(object):
             for player in self.players:
                 player['client']._in_game = False
 
-            delete_game(self.id)
+            del self.games[self.id]
 
     def start(self):
         if len(self.players) != MAX_PLAYERS:
@@ -98,7 +98,7 @@ class Game(object):
         self.update_turn()
 
     def take_cards(self, player_name):
-        if self.current_player != self.find_player(player_name):
+        if self.current_player != self.find_active_player(player_name):
             raise TakiException(Status.DENIED, 'It\'s not your turn.')
 
         self.deck.shuffle()
@@ -106,7 +106,7 @@ class Game(object):
         count = 1 if not self.plus_2_count else self.plus_2_count
         cards = self.deck.get_random_cards(count)
 
-        self.active_players[self.find_player(player_name)]['hand'].append_cards(cards)
+        self.active_players[self.find_active_player(player_name)]['hand'].append_cards(cards)
         self.broadcast(Request(Code.MOVE_DONE, type='cards_taken',
                                amount=count, player_name=player_name))
 
@@ -119,7 +119,7 @@ class Game(object):
         return cards
 
     def place_cards(self, player_name, raw_cards):
-        if self.current_player != self.find_player(player_name):
+        if self.current_player != self.find_active_player(player_name):
             raise TakiException(Status.DENIED, 'It\'s not your turn.')
 
         if len(raw_cards) == 0:
@@ -127,7 +127,7 @@ class Game(object):
 
         cards = [Card.deserialize(raw_card) for raw_card in raw_cards]
 
-        player = self.find_player(player_name)
+        player = self.find_active_player(player_name)
         hand = self.active_players[player]['hand']
 
         first = True
@@ -137,19 +137,19 @@ class Game(object):
 
         for card in cards:
             if not hand.card_exists(card, cards.count(card)) or \
-                    not valid_move(card, self.last_card, first, in_taki, self.plus_2_active):
+                    not valid_move(card, last_card, first, in_taki, self.plus_2_active):
                 raise TakiException(Status.BAD_REQUEST, 'Invalid move done.')
 
-            first = False
-            last_card = card
-
-        for card in cards:
             if card.type == CardType.STOP:
                 stop_done = True
 
             if card.type == CardType.TAKI or card.type == CardType.SUPER_TAKI:
                 in_taki = True
 
+            first = False
+            last_card = card
+
+        for card in cards:
             if card.type == CardType.PLUS_2:
                 self.plus_2_count += 2
                 self.plus_2_active = True
@@ -159,10 +159,12 @@ class Game(object):
 
             hand.remove_card(card)
 
-            if card.type == CardType.SUPER_TAKI or card.type == CardType.CHANGE_COLOR:
-                card.color = ''
+            new_card = Card(card.type, card.color, card.value)
 
-            self.deck.add_card(card)
+            if card.type == CardType.SUPER_TAKI or card.type == CardType.CHANGE_COLOR:
+                new_card.color = ''
+
+            self.deck.add_card(new_card)
 
         self.last_card = last_card
 
@@ -189,6 +191,10 @@ class Game(object):
             return self.find_player(player_name) is not None
 
     def find_player(self, player_name):
+        return next((i for i, player in enumerate(self.players)
+                    if player['name'] == player_name), None)
+
+    def find_active_player(self, player_name):
         return next((i for i, player in enumerate(self.active_players)
                     if player['name'] == player_name), None)
 
@@ -199,7 +205,7 @@ class Game(object):
         self.broadcast(Request(Code.PLAYER_FINISHED, player_name=player_name))
 
         self.scoreboard.append(player_name)
-        del self.active_players[self.find_player(player_name)]
+        del self.active_players[self.find_active_player(player_name)]
 
         if len(self.scoreboard) == len(self.players) - 1:
             last_name = self.active_players[0]['name']
@@ -212,7 +218,7 @@ class Game(object):
             for player in self.players:
                 player['client']._in_game = False
 
-            delete_game(self.id)
+            del self.games[self.id]
 
     def broadcast(self, message):
         with self.game_lock:

@@ -14,17 +14,8 @@ def find_game(game_id):
     return games[game_id]
 
 
-def delete_game(game_id):
-    if game_id not in games:
-        raise TakiException(Status.NOT_FOUND,
-                            'A game with the supplied game ID was not found.')
-
-    del games[game_id]
-    in_use.remove(game_id)
-
-
 def create_game(name, password, host, client):
-    game = Game(get_game_id(), name, password, host, client)
+    game = Game(get_game_id(), name, password, host, client, games)
     games[game.id] = game
 
     return game

@@ -47,7 +47,7 @@ class Client(Thread):
 
     def handle_request(self, code, args):
         controller_function = get_controller_func(code)
-        response = controller_function(args, self._socket)
+        response = controller_function(args, self)
         self._send_message(response.serialize())
 
     def close(self):
