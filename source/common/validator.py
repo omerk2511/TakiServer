@@ -41,11 +41,12 @@ def authenticated(func):
         try:
             user = decode_player_jwt(args['jwt'])
             del args['jwt']
-            return func(user, args, client)
         except TakiException as e:
             return e.response()
         except Exception:
             return Response(Status.BAD_REQUEST, message='No JWT supplied.')
+
+        return func(user, args, client)
 
     return wrapper
 
@@ -53,7 +54,7 @@ def authenticated(func):
 def not_in_game(func):
     @functools.wraps(func)
     def wrapper(args, client):
-        if client.in_game:
+        if client._in_game:
             return Responses.BAD_REQUEST
 
         return func(args, client)

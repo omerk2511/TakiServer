@@ -130,3 +130,6 @@ dmypy.json
 
 # VS code configuration
 .vscode/
+
+# Secret Configuration
+source/common/config.py

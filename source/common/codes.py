@@ -5,7 +5,7 @@ class Code(object):
     GAME_STARTING = 'game_starting'
     UPDATE_TURN = 'update_turn'
     MOVE_DONE = 'move_done'
-    PLAYER_WON = 'player_won'
+    PLAYER_FINISHED = 'player_finished'
     GAME_ENDED = 'game_ended'
 
     # Requests Codes

@@ -24,6 +24,8 @@ class Client(Thread):
         self._running = True
         self._socket_lock = Lock()
 
+        self._error_occurred = False
+
         print '[*] %s:%d has connected to the server' % (ip, port)
 
     def run(self):
@@ -36,20 +38,24 @@ class Client(Thread):
             except socket.timeout:
                 continue
             except socket.error:
+                self._error_occurred = True
                 return self.close()
             except Exception as e:
                 print '[-]', e
+                self._error_occurred = True
                 return self.close()
 
     def handle_request(self, code, args):
         controller_function = get_controller_func(code)
-        response = controller_function(args, self._socket)
+        response = controller_function(args, self)
         self._send_message(response.serialize())
 
     def close(self):
-        # TODO: handle opened games with him
+        # TODO: handle an opened game with him
 
-        self._clients.remove(self)
+        if self._error_occurred:
+            self._clients.remove(self)
+
         self._running = False
 
         with self._socket_lock:

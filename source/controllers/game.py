@@ -1,7 +1,9 @@
 from controller import controller
 from ..common import validator, encode_player_jwt, Response, Code, \
     Status, Rule, Responses, TakiException, authenticated, not_in_game
-from ..games import create_game, join_game, leave_game, start_game
+from ..games import create_game, join_game, leave_game, start_game, \
+    take_cards, place_cards
+
 
 @controller(Code.CREATE_GAME)
 @validator(Rule.CREATE_GAME)
@@ -13,10 +15,11 @@ def create_game_controller(args, client):
 
     try:
         game = create_game(lobby_name, password, host, client)
-        client.in_game = True
+        client._in_game = True
     except TakiException as e:
         return e.response()
     except Exception as e:
+        print '[-]', e
         return Responses.INTERNAL_ERROR
 
     print '[+] %s created game %s successfully' % (host, game.id)
@@ -34,17 +37,19 @@ def join_game_controller(args, client):
     password = str(args['password']).strip()
 
     try:
-        join_game(player_name, game_id, password, client)
-        client.in_game = True
+        game = join_game(player_name, game_id, password, client)
+        client._in_game = True
     except TakiException as e:
         return e.response()
-    except Exception:
+    except Exception as e:
+        print '[-]', e
         return Responses.INTERNAL_ERROR
 
     print '[+] %s joined game %d successfully' % (player_name, game_id)
 
     return Response(Status.SUCCESS,
-                    jwt=encode_player_jwt(game_id, player_name, False))
+                    jwt=encode_player_jwt(game_id, player_name, False),
+                    players=[p['name'] for p in game.players])
 
 
 @controller(Code.LEAVE_GAME)
@@ -54,10 +59,12 @@ def leave_game_controller(user, args, sock):
         leave_game(str(user['player_name']).strip(), user['game_id'])
     except TakiException as e:
         return e.response()
-    except Exception:
+    except Exception as e:
+        print '[-]', e
         return Responses.INTERNAL_ERROR
 
-    print '[+] %s left game %d successfully' % (user['player_name'], user['game_id'])
+    print '[+] %s left game %d successfully' % (user['player_name'],
+                                                user['game_id'])
 
     return Response(Status.SUCCESS)
 
@@ -73,9 +80,38 @@ def start_game_controller(user, args, client):
         start_game(user['game_id'])
     except TakiException as e:
         return e.response()
-    except Exception:
+    except Exception as e:
+        print '[-]', e
         return Responses.INTERNAL_ERROR
 
     print '[+] game %d started successfully' % (user['game_id'])
+
+    return Response(Status.SUCCESS)
+
+
+@controller(Code.TAKE_CARDS)
+@authenticated
+def take_cards_controller(user, args, sock):
+    try:
+        cards = take_cards(str(user['player_name']).strip(), user['game_id'])
+    except TakiException as e:
+        return e.response()
+    except Exception as e:
+        print '[-]', e
+        return Responses.INTERNAL_ERROR
+
+    return Response(Status.SUCCESS, cards=[card.serialize() for card in cards])
+
+
+@controller(Code.PLACE_CARDS)
+@authenticated
+def place_cards_controller(user, args, sock):
+    try:
+        place_cards(str(user['player_name']).strip(), args['cards'], user['game_id'])
+    except TakiException as e:
+        return e.response()
+    except Exception as e:
+        print '[-]', e
+        return Responses.INTERNAL_ERROR
 
     return Response(Status.SUCCESS)
