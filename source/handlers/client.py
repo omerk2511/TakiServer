@@ -17,7 +17,7 @@ class Client(Thread):
 
         self._socket = sock
         self._socket.settimeout(CLIENT_TIMEOUT)
-
+        self._in_game = False
         self._clients = clients
         self._ip = ip
         self._port = port

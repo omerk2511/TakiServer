@@ -1,19 +1,21 @@
 from controller import controller
 from ..common import validator, encode_player_jwt, Response, Code, \
-    Status, Rule, Responses, TakiException, authenticated
+    Status, Rule, Responses, TakiException, authenticated, not_in_game
 from ..games import create_game, join_game, leave_game, start_game, \
     take_cards, place_cards
 
 
 @controller(Code.CREATE_GAME)
 @validator(Rule.CREATE_GAME)
-def create_game_controller(args, sock):
+@not_in_game
+def create_game_controller(args, client):
     lobby_name = str(args['lobby_name']).strip()
     host = str(args['player_name']).strip()
     password = str(args['password']).strip()
 
     try:
-        game = create_game(lobby_name, password, host, sock)
+        game = create_game(lobby_name, password, host, client)
+        client._in_game = True
     except TakiException as e:
         return e.response()
     except Exception as e:
@@ -28,13 +30,15 @@ def create_game_controller(args, sock):
 
 @controller(Code.JOIN_GAME)
 @validator(Rule.JOIN_GAME)
-def join_game_controller(args, sock):
+@not_in_game
+def join_game_controller(args, client):
     game_id = args['game_id']
     player_name = str(args['player_name']).strip()
     password = str(args['password']).strip()
 
     try:
-        join_game(player_name, game_id, password, sock)
+        join_game(player_name, game_id, password, client)
+        client._in_game = True
     except TakiException as e:
         return e.response()
     except Exception as e:
@@ -66,7 +70,7 @@ def leave_game_controller(user, args, sock):
 
 @controller(Code.START_GAME)
 @authenticated
-def start_game_controller(user, args, sock):
+def start_game_controller(user, args, client):
     if not user['is_host']:
         return Response(Status.DENIED,
                         message='You are not the administrator of the lobby.')

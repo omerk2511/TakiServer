@@ -7,7 +7,7 @@ MAX_PLAYERS = 4
 
 
 class Game(object):
-    def __init__(self, game_id, name, password, host, sock):
+    def __init__(self, game_id, name, password, host, client):
         self.id = game_id
         self.name = name
         self.password = password
@@ -15,7 +15,7 @@ class Game(object):
         self.started = False
         self.players = [{
             'name': host,
-            'socket': sock
+            'client': client
         }]
         self.game_lock = Lock()
         self.deck = Deck()
@@ -25,7 +25,7 @@ class Game(object):
         self.last_card = Card(None, '', '')
         self.direction = 1
 
-    def add_player(self, player_name, password, sock):
+    def add_player(self, player_name, password, client):
         if self.started:
             raise TakiException(Status.DENIED, 'The game has already started.')
 
@@ -44,7 +44,7 @@ class Game(object):
         with self.game_lock:
             player = {
                 'name': player_name,
-                'socket': sock
+                'client': client
             }
 
             self.players.append(player)
@@ -171,7 +171,7 @@ class Game(object):
     def broadcast(self, message):
         with self.game_lock:
             for player in self.players:
-                player['socket'].send(message.serialize())
+                player['client']._socket.send(message.serialize())
 
     def end_game(self, winner):
         self.broadcast(Request(Code.PLAYER_WON, player_name=winner))

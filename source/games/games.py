@@ -14,15 +14,15 @@ def find_game(game_id):
     return games[game_id]
 
 
-def create_game(name, password, host, sock):
-    game = Game(get_game_id(), name, password, host, sock)
+def create_game(name, password, host, client):
+    game = Game(get_game_id(), name, password, host, client)
     games[game.id] = game
 
     return game
 
 
-def join_game(player_name, game_id, password, sock):
-    find_game(game_id).add_player(player_name, password, sock)
+def join_game(player_name, game_id, password, client):
+    find_game(game_id).add_player(player_name, password, client)
 
 
 def leave_game(player_name, game_id):
