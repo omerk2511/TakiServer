@@ -85,6 +85,8 @@ class Game(object):
         if self.current_player != self.find_player(player_name):
             raise TakiException(Status.DENIED, 'It\'s not your turn.')
 
+        self.deck.shuffle()
+
         count = 1 if not self.plus_2_count else self.plus_2_count
         cards = self.deck.get_random_cards(count)
 
