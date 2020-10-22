@@ -141,6 +141,11 @@ class Game(object):
 
             hand.remove_card(card)
 
+            if card.type == CardType.SUPER_TAKI or card.type == CardType.CHANGE_COLOR:
+                card.color = ''
+
+            self.deck.add_card(card)
+
         self.last_card = last_card
 
         self.broadcast(Request(Code.MOVE_DONE, type='cards_placed',
