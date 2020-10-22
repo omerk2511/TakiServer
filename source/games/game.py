@@ -1,5 +1,6 @@
 from ..common import TakiException, Status, Request, Code
 from ..cards import Card, Deck, CardType, valid_move
+from games import delete_game
 from threading import Lock
 import random
 
@@ -60,12 +61,20 @@ class Game(object):
                                 'The game has already started.')
 
         with self.game_lock:
-            del self.players[self.find_player(player_name)]
+            player = self.find_player(player_name)
+
+            self.players[player]['client']._in_game = False
+            del self.players[player]
+
+        self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
 
         if player_name == self.host:
-            pass  # TODO: close game and broadcast
-        else:
-            self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
+            self.broadcast(Request(Code.GAME_ENDED, scoreboard=[]))
+
+            for player in self.players:
+                player['client']._in_game = False
+
+            delete_game(self.id)
 
     def start(self):
         if len(self.players) != MAX_PLAYERS:
@@ -199,6 +208,11 @@ class Game(object):
             self.scoreboard.append(last_name)
 
             self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
+
+            for player in self.players:
+                player['client']._in_game = False
+
+            delete_game(self.id)
 
     def broadcast(self, message):
         with self.game_lock:

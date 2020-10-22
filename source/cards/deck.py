@@ -2,6 +2,7 @@ import random
 from card import Card
 from card_type import CardType
 from hand import Hand, HAND_INITIAL_SIZE
+from ..common import Status, TakiException
 
 COLORS = ['red', 'blue', 'green', 'yellow']
 NUMBERS = [1, 3, 4, 5, 6, 7, 8, 9]
@@ -30,6 +31,9 @@ class Deck(object):
         random.shuffle(self.cards)
 
     def get_random_cards(self, amount=1):
+        if len(self.cards) < amount:
+            raise TakiException(Status.DENIED, 'No more cards available.')
+
         return [self.cards.pop() for _ in xrange(amount)]
 
     def get_hand(self):

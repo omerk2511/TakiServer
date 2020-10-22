@@ -37,7 +37,7 @@ def join_game_controller(args, client):
     password = str(args['password']).strip()
 
     try:
-        join_game(player_name, game_id, password, client)
+        game = join_game(player_name, game_id, password, client)
         client._in_game = True
     except TakiException as e:
         return e.response()
@@ -48,7 +48,8 @@ def join_game_controller(args, client):
     print '[+] %s joined game %d successfully' % (player_name, game_id)
 
     return Response(Status.SUCCESS,
-                    jwt=encode_player_jwt(game_id, player_name, False))
+                    jwt=encode_player_jwt(game_id, player_name, False),
+                    players=[p['name'] for p in game.players])
 
 
 @controller(Code.LEAVE_GAME)

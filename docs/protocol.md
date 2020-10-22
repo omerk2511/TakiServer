@@ -127,7 +127,8 @@ The optional values are:
 {
     "status": "success",
     "args": {
-        "jwt": ""
+        "jwt":      "",
+        "players":  []
     }
 }
 ```

@@ -6,7 +6,6 @@ MIN_ID = 0
 MAX_ID = 9999
 
 in_use = []
-# TODO: remove game from in_use on close
 
 
 def get_game_id():

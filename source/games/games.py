@@ -1,5 +1,5 @@
 from game import Game
-from utils import get_game_id
+from utils import get_game_id, in_use
 from ..common import TakiException, Status
 
 
@@ -14,6 +14,15 @@ def find_game(game_id):
     return games[game_id]
 
 
+def delete_game(game_id):
+    if game_id not in games:
+        raise TakiException(Status.NOT_FOUND,
+                            'A game with the supplied game ID was not found.')
+
+    del games[game_id]
+    in_use.remove(game_id)
+
+
 def create_game(name, password, host, client):
     game = Game(get_game_id(), name, password, host, client)
     games[game.id] = game
@@ -22,7 +31,10 @@ def create_game(name, password, host, client):
 
 
 def join_game(player_name, game_id, password, client):
-    find_game(game_id).add_player(player_name, password, client)
+    game = find_game(game_id)
+    game.add_player(player_name, password, client)
+
+    return game
 
 
 def leave_game(player_name, game_id):
