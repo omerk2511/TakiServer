@@ -51,7 +51,7 @@ class Client(Thread):
         self._send_message(response.serialize())
 
     def close(self):
-        # TODO: handle opened games with him
+        # TODO: handle an opened game with him
 
         if self._error_occurred:
             self._clients.remove(self)
