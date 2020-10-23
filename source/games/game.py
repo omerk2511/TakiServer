@@ -179,12 +179,9 @@ class Game(object):
                                cards=raw_cards, player_name=player_name))
 
         if hand.empty():
-            if player == len(self.active_players) - 1:
-                self.current_player = 0
+            return self.player_finished(player_name)
 
-            self.player_finished(player_name)
-        else:
-            self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
+        self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
 
         self.update_turn()
 
@@ -209,10 +206,15 @@ class Game(object):
         random.shuffle(self.players)
 
     def player_finished(self, player_name):
+        player = self.find_active_player(player_name)
+
+        if player == len(self.active_players) - 1:
+            self.current_player = 0
+
         self.broadcast(Request(Code.PLAYER_FINISHED, player_name=player_name))
 
         self.scoreboard.append(player_name)
-        del self.active_players[self.find_active_player(player_name)]
+        del self.active_players[player]
 
         if len(self.scoreboard) == len(self.players) - 1:
             last_name = self.active_players[0]['name']
@@ -222,10 +224,10 @@ class Game(object):
 
             self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
 
-            for player in self.players:
-                player['client']._in_game = False
-                player['client']._game_id = -1
-                player['client']._player_name = ''
+            for p in self.players:
+                p['client']._in_game = False
+                p['client']._game_id = -1
+                p['client']._player_name = ''
 
             del self.games[self.id]
             in_use.remove(self.id)
@@ -234,10 +236,18 @@ class Game(object):
         if not self.started:
             return self.remove_player(player_name)
 
+        player = self.find_player(player_name)
+        active_player = self.find_active_player(player_name)
+
+        if active_player == len(self.active_players) - 1:
+            self.current_player = 0
+
+        self.deck.add_cards(self.players[player]['hand'].get_cards())
+
         self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
 
-        del self.players[self.find_player(player_name)]
-        del self.active_players[self.find_active_player(player_name)]
+        del self.players[player]
+        del self.active_players[active_player]
 
         if len(self.scoreboard) == len(self.players) - 1:
             last_name = self.active_players[0]['name']
@@ -247,10 +257,10 @@ class Game(object):
 
             self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
 
-            for player in self.players:
-                player['client']._in_game = False
-                player['client']._game_id = -1
-                player['client']._player_name = ''
+            for p in self.players:
+                p['client']._in_game = False
+                p['client']._game_id = -1
+                p['client']._player_name = ''
 
             del self.games[self.id]
             in_use.remove(self.id)

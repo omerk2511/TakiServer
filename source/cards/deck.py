@@ -41,3 +41,7 @@ class Deck(object):
 
     def add_card(self, card):
         self.cards.insert(0, card)
+
+    def add_cards(self, cards):
+        for card in cards:
+            self.add_card(card)

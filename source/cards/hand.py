@@ -8,6 +8,9 @@ class Hand(object):
     def append_cards(self, cards):
         self.cards.extend(cards)
 
+    def get_cards(self):
+        return self.cards
+
     def remove_card(self, card):
         self.cards.remove(card)
 
