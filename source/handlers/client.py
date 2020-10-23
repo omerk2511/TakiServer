@@ -5,6 +5,7 @@ from threading import Thread, Lock
 
 from ..common import Request, Responses
 from ..controllers import get_controller_func
+from ..games import find_game
 
 
 BUFFER_SIZE = 1024
@@ -18,6 +19,8 @@ class Client(Thread):
         self._socket = sock
         self._socket.settimeout(CLIENT_TIMEOUT)
         self._in_game = False
+        self._game_id = -1
+        self._player_name = ''
         self._clients = clients
         self._ip = ip
         self._port = port
@@ -51,7 +54,9 @@ class Client(Thread):
         self._send_message(response.serialize())
 
     def close(self):
-        # TODO: handle an opened game with him
+        if self._in_game:
+            game = find_game(self._game_id)
+            game.player_disconnected(self._player_name)
 
         if self._error_occurred:
             self._clients.remove(self)

@@ -65,6 +65,9 @@ class Game(object):
             player = self.find_player(player_name)
 
             self.players[player]['client']._in_game = False
+            self.players[player]['client']._game_id = -1
+            self.players[player]['client']._player_name = ''
+
             del self.players[player]
 
         self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
@@ -74,6 +77,8 @@ class Game(object):
 
             for player in self.players:
                 player['client']._in_game = False
+                player['client']._game_id = -1
+                player['client']._player_name = ''
 
             del self.games[self.id]
             in_use.remove(self.id)
@@ -219,6 +224,33 @@ class Game(object):
 
             for player in self.players:
                 player['client']._in_game = False
+                player['client']._game_id = -1
+                player['client']._player_name = ''
+
+            del self.games[self.id]
+            in_use.remove(self.id)
+
+    def player_disconnected(self, player_name):
+        if not self.started:
+            return self.remove_player(player_name)
+
+        self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
+
+        del self.players[self.find_player(player_name)]
+        del self.active_players[self.find_active_player(player_name)]
+
+        if len(self.scoreboard) == len(self.players) - 1:
+            last_name = self.active_players[0]['name']
+
+            self.broadcast(Request(Code.PLAYER_FINISHED, player_name=last_name))
+            self.scoreboard.append(last_name)
+
+            self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
+
+            for player in self.players:
+                player['client']._in_game = False
+                player['client']._game_id = -1
+                player['client']._player_name = ''
 
             del self.games[self.id]
             in_use.remove(self.id)
