@@ -179,9 +179,9 @@ class Game(object):
                                cards=raw_cards, player_name=player_name))
 
         if hand.empty():
-            return self.player_finished(player_name)
-
-        self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
+            self.player_finished(player_name)
+        else:
+            self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
 
         self.update_turn()
 
@@ -229,6 +229,9 @@ class Game(object):
                 p['client']._game_id = -1
                 p['client']._player_name = ''
 
+            del self.players[:]
+            del self.active_players[:]
+
             del self.games[self.id]
             in_use.remove(self.id)
 
@@ -239,8 +242,13 @@ class Game(object):
         player = self.find_player(player_name)
         active_player = self.find_active_player(player_name)
 
-        if active_player == len(self.active_players) - 1:
-            self.current_player = 0
+        if self.current_player == active_player:
+            if active_player == len(self.active_players) - 1:
+                self.current_player = 0
+
+            self.update_turn()
+        elif self.current_player > active_player:
+            self.current_player -= 1
 
         self.deck.add_cards(self.players[player]['hand'].get_cards())
 

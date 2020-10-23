@@ -12,7 +12,8 @@ def build_color_cards(color):
     return ([Card(CardType.NUMBER_CARD, color, number) for number in NUMBERS] +
             [Card(CardType.STOP, color, ''), Card(CardType.PLUS, color, ''),
              Card(CardType.TAKI, color, ''),
-             Card(CardType.CHANGE_DIRECTION, color, '')])
+             Card(CardType.CHANGE_DIRECTION, color, ''),
+             Card(CardType.PLUS_2, color, '')])
 
 
 def build_initial_deck():
