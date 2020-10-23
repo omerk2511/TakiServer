@@ -1,5 +1,6 @@
 from ..common import TakiException, Status, Request, Code
 from ..cards import Card, Deck, CardType, valid_move
+from utils import in_use
 from threading import Lock
 import random
 
@@ -64,6 +65,9 @@ class Game(object):
             player = self.find_player(player_name)
 
             self.players[player]['client']._in_game = False
+            self.players[player]['client']._game_id = -1
+            self.players[player]['client']._player_name = ''
+
             del self.players[player]
 
         self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
@@ -73,8 +77,11 @@ class Game(object):
 
             for player in self.players:
                 player['client']._in_game = False
+                player['client']._game_id = -1
+                player['client']._player_name = ''
 
             del self.games[self.id]
+            in_use.remove(self.id)
 
     def start(self):
         if len(self.players) != MAX_PLAYERS:
@@ -172,9 +179,6 @@ class Game(object):
                                cards=raw_cards, player_name=player_name))
 
         if hand.empty():
-            if player == len(self.active_players) - 1:
-                self.current_player = 0
-
             self.player_finished(player_name)
         else:
             self.current_player = (self.current_player + (int(stop_done) + 1) * self.direction) % len(self.active_players)
@@ -202,10 +206,15 @@ class Game(object):
         random.shuffle(self.players)
 
     def player_finished(self, player_name):
+        player = self.find_active_player(player_name)
+
+        if player == len(self.active_players) - 1:
+            self.current_player = 0
+
         self.broadcast(Request(Code.PLAYER_FINISHED, player_name=player_name))
 
         self.scoreboard.append(player_name)
-        del self.active_players[self.find_active_player(player_name)]
+        del self.active_players[player]
 
         if len(self.scoreboard) == len(self.players) - 1:
             last_name = self.active_players[0]['name']
@@ -215,10 +224,54 @@ class Game(object):
 
             self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
 
-            for player in self.players:
-                player['client']._in_game = False
+            for p in self.players:
+                p['client']._in_game = False
+                p['client']._game_id = -1
+                p['client']._player_name = ''
+
+            del self.players[:]
+            del self.active_players[:]
 
             del self.games[self.id]
+            in_use.remove(self.id)
+
+    def player_disconnected(self, player_name):
+        if not self.started:
+            return self.remove_player(player_name)
+
+        player = self.find_player(player_name)
+        active_player = self.find_active_player(player_name)
+
+        if self.current_player == active_player:
+            if active_player == len(self.active_players) - 1:
+                self.current_player = 0
+
+            self.update_turn()
+        elif self.current_player > active_player:
+            self.current_player -= 1
+
+        self.deck.add_cards(self.players[player]['hand'].get_cards())
+
+        self.broadcast(Request(Code.PLAYER_LEFT, player_name=player_name))
+
+        del self.players[player]
+        del self.active_players[active_player]
+
+        if len(self.scoreboard) == len(self.players) - 1:
+            last_name = self.active_players[0]['name']
+
+            self.broadcast(Request(Code.PLAYER_FINISHED, player_name=last_name))
+            self.scoreboard.append(last_name)
+
+            self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
+
+            for p in self.players:
+                p['client']._in_game = False
+                p['client']._game_id = -1
+                p['client']._player_name = ''
+
+            del self.games[self.id]
+            in_use.remove(self.id)
 
     def broadcast(self, message):
         with self.game_lock:

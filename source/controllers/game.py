@@ -15,7 +15,10 @@ def create_game_controller(args, client):
 
     try:
         game = create_game(lobby_name, password, host, client)
+
         client._in_game = True
+        client._game_id = game.id
+        client._player_name = host
     except TakiException as e:
         return e.response()
     except Exception as e:
@@ -38,7 +41,10 @@ def join_game_controller(args, client):
 
     try:
         game = join_game(player_name, game_id, password, client)
+
         client._in_game = True
+        client._game_id = game.id
+        client._player_name = player_name
     except TakiException as e:
         return e.response()
     except Exception as e:

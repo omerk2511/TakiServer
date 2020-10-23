@@ -1,5 +1,5 @@
 from game import Game
-from utils import get_game_id, in_use
+from utils import get_game_id
 from ..common import TakiException, Status
 
 
