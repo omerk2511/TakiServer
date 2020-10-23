@@ -1,5 +1,6 @@
 from ..common import TakiException, Status, Request, Code
 from ..cards import Card, Deck, CardType, valid_move
+from utils import in_use
 from threading import Lock
 import random
 
@@ -75,6 +76,7 @@ class Game(object):
                 player['client']._in_game = False
 
             del self.games[self.id]
+            in_use.remove(self.id)
 
     def start(self):
         if len(self.players) != MAX_PLAYERS:
@@ -219,6 +221,7 @@ class Game(object):
                 player['client']._in_game = False
 
             del self.games[self.id]
+            in_use.remove(self.id)
 
     def broadcast(self, message):
         with self.game_lock:
