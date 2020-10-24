@@ -89,7 +89,7 @@ The optional values are:
 {
     "status": "success",
     "args": {
-        "game_id":  "",
+        "game_id":  0,
         "jwt":      ""
     }
 }
@@ -114,7 +114,7 @@ The optional values are:
 {
     "code": "join_game",
     "args": {
-        "game_id":      "",
+        "game_id":      0,
         "player_name":  "",
         "password" :    ""
     }
