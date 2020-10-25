@@ -1,4 +1,4 @@
-card_structure = {"type": "", "color": "", "value": ""}
+CARD_STRUCTURE = {"type": "", "color": "", "value": ""}
 
 
 class Rule(object):
