@@ -18,5 +18,5 @@ class Rule(object):
     ]
 
     PLACE_CARDS = [
-        ('cards', lambda cards: all(card.viewkeys() == card_structure.viewkeys() for card in cards))
+        ('cards', lambda cards: all(card.viewkeys() == CARD_STRUCTURE.viewkeys() for card in cards))
     ]
