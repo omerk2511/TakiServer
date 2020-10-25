@@ -111,7 +111,20 @@ class Game(object):
         self.deck.shuffle()
 
         count = 1 if not self.plus_2_count else self.plus_2_count
-        cards = self.deck.get_random_cards(count)
+
+        try:
+            cards = self.deck.get_random_cards(count)
+        except TakiException as e:
+            self.rate_remaining_players()
+            self.broadcast(Request(Code.GAME_ENDED, scoreboard=self.scoreboard))
+            for p in self.players:
+                p['client']._in_game = False
+                p['client']._game_id = -1
+                p['client']._player_name = ''
+            del self.players[:]
+            del self.games[self.id]
+            in_use.remove(self.id)
+            raise
 
         self.active_players[self.find_active_player(player_name)]['hand'].append_cards(cards)
         self.broadcast(Request(Code.MOVE_DONE, type='cards_taken',
@@ -204,6 +217,12 @@ class Game(object):
 
     def shuffle_players(self):
         random.shuffle(self.players)
+
+    def rate_remaining_players(self):
+        for _ in xrange(self.active_players):
+            min_hand_player = min(self.active_players, key=lambda player: len(player['hand'].get_cards()))
+            self.scoreboard.append(min_hand_player['name'])
+            del self.active_players[self.find_active_player(min_hand_player['name'])]
 
     def player_finished(self, player_name):
         player = self.find_active_player(player_name)
