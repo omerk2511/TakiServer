@@ -110,6 +110,7 @@ def take_cards_controller(user, args, sock):
 
 
 @controller(Code.PLACE_CARDS)
+@validator(Rule.PLACE_CARDS)
 @authenticated
 def place_cards_controller(user, args, sock):
     try:
