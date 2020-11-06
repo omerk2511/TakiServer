@@ -20,7 +20,7 @@ def build_initial_deck():
     return (reduce(lambda x, y: x + y,
                    [build_color_cards(color) for color in COLORS]) +
             [Card(CardType.CHANGE_COLOR, '', '')] * 2 +
-            [Card(CardType.SUPER_TAKI, '', '')] * 2) * 2
+            [Card(CardType.SUPER_TAKI, '', '')]) * 2
 
 
 class Deck(object):
