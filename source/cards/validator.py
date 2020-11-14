@@ -16,9 +16,9 @@ FIRST_STATE_MACHINE = {
 REGULAR_STATE_MACHINE = {
     CardType.NUMBER_CARD: lambda card, other, in_taki: in_taki and card.color == other.color,
     CardType.PLUS: lambda card, other, in_taki: card.type == other.type or card.color == other.color,
-    CardType.PLUS_2: lambda card, other, in_taki: False,
-    CardType.STOP: lambda card, other, in_taki: False,
-    CardType.CHANGE_DIRECTION: lambda card, other, in_taki: False,
+    CardType.PLUS_2: lambda card, other, in_taki: in_taki and card.color == other.color,
+    CardType.STOP: lambda card, other, in_taki: in_taki and card.color == other.color,
+    CardType.CHANGE_DIRECTION: lambda card, other, in_taki: in_taki and card.color == other.color,
     CardType.CHANGE_COLOR: lambda card, other, in_taki: False,
     CardType.TAKI: lambda card, other, in_taki: card.color == other.color,
     CardType.SUPER_TAKI: lambda card, other, in_taki: card.color == other.color

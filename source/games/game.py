@@ -160,27 +160,26 @@ class Game(object):
                     not valid_move(card, last_card, first, in_taki, self.plus_2_active):
                 raise TakiException(Status.BAD_REQUEST, 'Invalid move done.')
 
-            if card.type == CardType.STOP:
-                stop_done = True
-
             if card.type == CardType.TAKI or card.type == CardType.SUPER_TAKI:
                 in_taki = True
 
             first = False
             last_card = card
 
+        if last_card.type == CardType.STOP:
+            stop_done = True
+
+        if last_card.type == CardType.PLUS_2:
+            self.plus_2_count += 2
+            self.plus_2_active = True
+
+        if last_card.type == CardType.CHANGE_DIRECTION:
+            self.direction = -self.direction
+
         for card in cards:
-            if card.type == CardType.PLUS_2:
-                self.plus_2_count += 2
-                self.plus_2_active = True
-
-            if card.type == CardType.CHANGE_DIRECTION:
-                self.direction = -self.direction
-
             hand.remove_card(card)
 
             new_card = Card(card.type, card.color, card.value)
-
             if card.type == CardType.SUPER_TAKI or card.type == CardType.CHANGE_COLOR:
                 new_card.color = ''
 
@@ -227,8 +226,14 @@ class Game(object):
     def player_finished(self, player_name):
         player = self.find_active_player(player_name)
 
-        if player == len(self.active_players) - 1:
-            self.current_player = 0
+        if self.direction == 1:
+            if player == len(self.active_players) - 1:
+                self.current_player = 0
+        else:
+            if player == 0:
+                self.current_player = len(self.active_players) - 2
+            else:
+                self.current_player -= 1
 
         self.broadcast(Request(Code.PLAYER_FINISHED, player_name=player_name))
 
@@ -262,8 +267,14 @@ class Game(object):
         active_player = self.find_active_player(player_name)
 
         if self.current_player == active_player:
-            if active_player == len(self.active_players) - 1:
-                self.current_player = 0
+            if self.direction == 1:
+                if player == len(self.active_players) - 1:
+                    self.current_player = 0
+            else:
+                if player == 0:
+                    self.current_player = len(self.active_players) - 2
+                else:
+                    self.current_player -= 1
 
             self.update_turn()
         elif self.current_player > active_player:
@@ -295,4 +306,7 @@ class Game(object):
     def broadcast(self, message):
         with self.game_lock:
             for player in self.players:
-                player['client']._socket.send(message.serialize())
+                try:
+                    player['client']._socket.send(message.serialize())
+                except Exception:
+                    pass
